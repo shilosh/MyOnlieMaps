@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <title>Displaying a map on a Webpage</title>
+        <meta name="viewport" content="intial-scale=1,maximum-scale=1,user-scalable=no">
+        <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet">
+        <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
+        <style>
+            body { margin: 0; padding: 0; }
+            #map { position: absolute; top: 0; bottom: 0; width: 100% }
+        </style>      
+    </head>
+    <body>
+        <style type="text/css">
+            #info {
+            display: table;
+            position: relative;
+            margin: 0px auto;
+            word-wrap: anywhere;
+            white-space: pre-wrap;
+            padding: 10px;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            text-align: center;
+            color: #222;
+            background: #fff;
+            }
+        </style>
+        <div id="map"></div>
+        <pre id="info"></pre>
+        <script>
+            const map = new maplibregl.Map({
+                container: 'map',
+                style: 'https://api.maptiler.com/maps/bright/style.json?key=vzeBde6fOu62FXtJAA83',
+                center: [35, 32],
+                zoom: 9
+            });
+            map.on('mousemove', (e) => {
+                document.getElementById('info').innerHTML =
+                // `e.point` is the x, y coordinates of the `mousemove` event
+                // relative to the top-left corner of the map.
+                JSON.stringify(e.point) +
+                '<br />' +
+                // `e.lngLat` is the longitude, latitude geographical position of the event.
+                JSON.stringify(e.lngLat.wrap());
+            }); 
+            map.on('load', function() {
+                map.addControl(new maplibregl.NavigationControl());
+                map.addSource('socio_layer', {
+                    'type': 'geojson',
+                    'data': 'https://api.maptiler.com/data/c0c3b67e-be05-4475-abb0-4587da746538/features.json?key=CLgtrdN5zBUSn3GwP3Hc'
+                });
+                map.addLayer({
+                    'id': 'socio_layer',
+                    'type': 'fill',
+                    'source': 'socio_layer',
+                    'paint': {
+                    'fill-outline-color': 'blue',
+                    'fill-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'cluster17'],
+                        1, '#000000',
+                        4, '#000066',
+                        8, '#0000bb',
+                        10, '#0000ff'
+                    ],
+                    'fill-opacity': 0.8
+                    }
+                    });
+            map.on('click', 'socio_layer', function(e) {
+                let coordinates = e.lngLat;
+                let description = 
+                    '<div class="popup">' + 
+                    e.features[0].properties.Muni_Heb + "<br>" + 
+                    "אשכול חברתי-כלכלי" + "&nbsp" +
+                    e.features[0].properties.cluster17 + "<br>" + 
+                    '</div>';
+                new maplibregl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(description)
+                    .addTo(map);
+            });
+    });
+        </script>
+
+    </body>
+</html>
